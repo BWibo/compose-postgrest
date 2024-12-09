@@ -41,6 +41,7 @@ Try things like:
 
 - <https://localhost/postgrest/test>
 - <https://localhost/postgrest/test?ts=gt.2023-01-01&ts=lt.2024-01-01>
+- <https://localhost/postgrest/test?select=val.count(),val.sum(),val.avg()>
 - <https://localhost/postgrest/view_of_test>
 
 Outdated examples:
