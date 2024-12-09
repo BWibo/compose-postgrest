@@ -27,21 +27,23 @@ Located at <https://localhost>
 
 ### SwaggerUI API docs
 
-* <https://localhost/swagger/>
+- <https://localhost/swagger/>
 
 ### Postgrest
 
-* [Official API docs](https://docs.postgrest.org/en/v12/references/api.html)
+- [Official API docs](https://docs.postgrest.org/en/v12/references/api.html)
 
-Located at <https://localhost/postgrest/>
+#### Examples
+
+- PostgREST API endpoint: <https://localhost/postgrest/>
 
 Try things like:
 
-* <https://localhost/postgrest/test>
-* <https://localhost/postgrest/test?ts=gt.2023-01-01&ts=lt.2024-01-01>
-* <https://localhost/postgrest/view_of_test>
+- <https://localhost/postgrest/test>
+- <https://localhost/postgrest/test?ts=gt.2023-01-01&ts=lt.2024-01-01>
+- <https://localhost/postgrest/view_of_test>
 
 Outdated examples:
 
-* <https://localhost/postgrest/city?district=like.*Island>
-* <https://localhost/postgrest/city?district=like.*Island&population=lt.1000&select=id,name>
+- <https://localhost/postgrest/city?district=like.*Island>
+- <https://localhost/postgrest/city?district=like.*Island&population=lt.1000&select=id,name>
