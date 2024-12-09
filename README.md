@@ -31,14 +31,17 @@ Located at <https://localhost>
 
 ### Postgrest
 
+* [Official API docs](https://docs.postgrest.org/en/v12/references/api.html)
+
 Located at <https://localhost/postgrest/>
 
 Try things like:
 
-* <https://localhost/postgrest/city>
-* <https://localhost/postgrest/country>
-* <https://localhost/postgrest/countrylanguage>
-* <https://localhost/postgrest/city?name=eq.Denver>
-* <https://localhost/postgrest/city?population=gte.5000000>
+* <https://localhost/postgrest/test>
+* <https://localhost/postgrest/test?ts=gt.2023-01-01&ts=lt.2024-01-01>
+* <https://localhost/postgrest/view_of_test>
+
+Outdated examples:
+
 * <https://localhost/postgrest/city?district=like.*Island>
 * <https://localhost/postgrest/city?district=like.*Island&population=lt.1000&select=id,name>
