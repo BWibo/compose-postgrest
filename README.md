@@ -23,7 +23,7 @@ Contains a simple front-end  demo application.
 
 ## Demo Application
 
-Located at <https://localhost>
+Located at <https://localhost/>
 
 ### SwaggerUI API docs
 
