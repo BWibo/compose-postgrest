@@ -78,7 +78,7 @@ services:
     environment:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-      - PGRST_DB_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/test
+      - PGRST_DB_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/${POSTGREST_DB_NAME}
       # The name of which database schema to expose to REST clients
       - PGRST_DB_SCHEMA=${DB_SCHEMA}
       # The database role to use when no client authentication is provided
@@ -90,7 +90,8 @@ services:
       - postgrest-backend
     restart: always
     labels:
-      caddy: "${DOMAIN:?DOMAIN not set}"
+      caddy: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
+      caddy.tls: ${CADDY_TLS}
       caddy.handle_path: "${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set}/*"
       caddy.handle_path.reverse_proxy: "{{upstreams http 3000}}"
       caddy.redir: "${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set} ${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set}/"
@@ -107,10 +108,11 @@ services:
       - API_URL=https://${DOMAIN}${POSTGREST_SUBPATH}
     restart: always
     labels:
-      caddy: "${DOMAIN:?DOMAIN not set}"
-      caddy.handle_path: "/swagger/*"
+      caddy: "${TLS_DOMAINS:?TLS_DOMAINS not set}"
+      caddy.tls: ${CADDY_TLS}
+      caddy.handle_path: "${SWAGGER_SUBPATH}/*"
       caddy.handle_path.reverse_proxy: "{{upstreams http 8080}}"
-      caddy.redir: "/swagger /swagger/"
+      caddy.redir: "${SWAGGER_SUBPATH} ${SWAGGER_SUBPATH}/"
 
 
 networks:
