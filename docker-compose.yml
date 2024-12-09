@@ -1,10 +1,8 @@
-version: "3"
-
 volumes:
   caddy_config:
 
   caddy_data:
-    # external: true
+    external: true
 
 services:
   caddy:
@@ -44,7 +42,7 @@ services:
   ################
   postgrest-db:
     container_name: postgrest-db
-    image: postgres:15-alpine
+    image: postgres:17-alpine
     ports:
       - "5432:5432"
     environment:
@@ -60,6 +58,12 @@ services:
     networks:
       - postgrest-backend
     restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER not set} -d ${POSTGRES_DB:?POSTGRES_DB not set}"]
+      interval: 10s
+      retries: 5
+      start_period: 5s
+      timeout: 5s
 
   #############
   # postgrest #
@@ -74,13 +78,14 @@ services:
     environment:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-      - PGRST_DB_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/logging
+      - PGRST_DB_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/test
       # The name of which database schema to expose to REST clients
       - PGRST_DB_SCHEMA=${DB_SCHEMA}
       # The database role to use when no client authentication is provided
       - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
       # Overrides the base URL used within the OpenAPI self-documentation hosted at the API root path
-      - PGRST_OPENAPI_SERVER_PROXY_URI=http://localhost/log
+      - PGRST_OPENAPI_SERVER_PROXY_URI=https://${DOMAIN}${POSTGREST_SUBPATH}
+      - PGRST_DB_AGGREGATES_ENABLED=true
     networks:
       - postgrest-backend
     restart: always
@@ -91,15 +96,15 @@ services:
       caddy.redir: "${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set} ${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set}/"
     depends_on:
       postgrest-db:
-        condition: service_started
+        condition: service_healthy
 
   swagger-ui:
     networks:
       - postgrest-backend
     container_name: swagger-ui
-    image: swaggerapi/swagger-ui:latest9
+    image: swaggerapi/swagger-ui:latest
     environment:
-      - API_URL=https://localhost/log
+      - API_URL=https://${DOMAIN}${POSTGREST_SUBPATH}
     restart: always
     labels:
       caddy: "${DOMAIN:?DOMAIN not set}"
