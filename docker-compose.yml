@@ -20,6 +20,7 @@ services:
       # anything in initdb directory is created in the database
       # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
       - "./initdb:/docker-entrypoint-initdb.d"
+      - postgrest_pgdata:/var/lib/postgresql/data
     networks:
       - postgrest-backend
     restart: always
@@ -70,6 +71,11 @@ services:
     networks:
       - postgrest-backend
     restart: always
+
+volumes:
+  postgrest_pgdata:
+    external: true
+
 
 networks:
   postgrest-backend:

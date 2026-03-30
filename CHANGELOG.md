@@ -16,3 +16,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated documentation in CLAUDE.md with new PostgREST settings table.
+- Switched PostgreSQL data storage to a named external Docker volume (`postgrest_pgdata`) for explicit data lifecycle management.
