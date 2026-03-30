@@ -1,6 +1,28 @@
 #!/bin/bash
+#
+# PostgREST database initialization script
+# =========================================
+# Runs once on first PostgreSQL container startup (docker-entrypoint-initdb.d).
+# To re-run, remove the data volume: docker compose down -v && docker compose up -d
+#
+# This script does two things:
+#   1. Sets up the PostgREST database, roles, and schema (required).
+#   2. Creates a sample "test" table with seed data for demo purposes (optional).
+#
+# All names are driven by environment variables defined in .env.
 
-# Step 1: Create PostgREST database and roles
+# ---------------------------------------------------------------------------
+# Step 1 — Database and roles
+# ---------------------------------------------------------------------------
+# Creates the PostgREST database and the role hierarchy:
+#   - anon (NOLOGIN)        : anonymous request role, used by PostgREST for
+#                              unauthenticated API access. Has no login capability.
+#   - authenticator (LOGIN, NOINHERIT) : the role PostgREST connects as. NOINHERIT
+#                              means it has zero privileges on its own — it can only
+#                              act via SET ROLE to one of its granted roles (e.g. anon).
+#   - anon is granted to authenticator so PostgREST can SET ROLE to it.
+#
+# See https://docs.postgrest.org/en/stable/tutorials/tut0.html for details.
 psql -U ${POSTGRES_USER} <<-END
     CREATE DATABASE ${POSTGREST_DB};
     CREATE ROLE ${DB_ANON_ROLE} NOLOGIN;
@@ -8,7 +30,12 @@ psql -U ${POSTGRES_USER} <<-END
     GRANT ${DB_ANON_ROLE} TO ${POSTGREST_USER};
 END
 
-# Step 2: Create schema and grant permissions
+# ---------------------------------------------------------------------------
+# Step 2 — Schema and permissions
+# ---------------------------------------------------------------------------
+# Creates the schema that PostgREST will expose as a REST API and grants
+# read-only access to the anonymous role. ALTER DEFAULT PRIVILEGES ensures
+# any tables created later in this schema are also readable by anon.
 psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
     CREATE SCHEMA ${DB_SCHEMA};
     GRANT USAGE ON SCHEMA ${DB_SCHEMA} TO ${DB_ANON_ROLE};
@@ -17,9 +44,21 @@ psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
     GRANT SELECT ON ALL TABLES IN SCHEMA ${DB_SCHEMA} TO ${DB_ANON_ROLE};
 END
 
-# Step 3: Create tables, views, indexes, and seed data
+# ===========================================================================
+# Sample / demo data (everything below is optional)
+# ===========================================================================
+# The following steps create a test table, a view, indexes, and seed data
+# to demonstrate PostgREST functionality out of the box. You can safely
+# remove or replace everything below this line with your own schema.
+# ===========================================================================
+
+# ---------------------------------------------------------------------------
+# Step 3 — Demo table, view, indexes, and seed data
+# ---------------------------------------------------------------------------
 psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
 BEGIN;
+    -- Demo table with a mix of column types to exercise PostgREST features
+    -- (filtering, ordering, aggregates, pattern matching).
     CREATE TABLE ${DB_SCHEMA}.test (
         id SERIAL PRIMARY KEY,
         name TEXT,
@@ -33,6 +72,7 @@ BEGIN;
     CREATE INDEX test_network on ${DB_SCHEMA}.test USING btree (ts);
     CREATE INDEX test_lat on ${DB_SCHEMA}.test USING btree (val);
 
+    -- A view to demonstrate that PostgREST exposes views as API endpoints too.
     CREATE VIEW ${DB_SCHEMA}.view_of_test AS
     SELECT
         name, ts, val
@@ -41,6 +81,7 @@ BEGIN;
 
 COMMIT;
 
+-- Seed 500 random rows so the API has data to return immediately.
 BEGIN;
 
 INSERT INTO ${DB_SCHEMA}.test (name, type, ts, val)
@@ -57,7 +98,11 @@ FROM
 COMMIT;
 END
 
-# Step 4: Add OpenAPI documentation comments
+# ---------------------------------------------------------------------------
+# Step 4 — OpenAPI documentation comments (for demo table)
+# ---------------------------------------------------------------------------
+# PostgREST reads COMMENT ON objects and includes them in the auto-generated
+# OpenAPI spec. Swagger UI then renders them as descriptions.
 psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
     COMMENT ON SCHEMA ${DB_SCHEMA} IS
         'This is a example title for an automatically created API documentation.';

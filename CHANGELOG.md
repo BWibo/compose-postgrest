@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Configurable PostgREST settings: `PGRST_DB_MAX_ROWS`, `PGRST_DB_POOL`, `PGRST_DB_POOL_ACQUISITION_TIMEOUT` exposed as environment variables.
 - Production-hardening recommendations as commented settings in `.env` (error verbosity, OpenAPI mode, pool lifecycle, logging, admin health endpoint).
 - Comprehensive usage commands, endpoint reference, and query examples in README.
+- Database Roles section in README explaining PostgREST's three-role security model and request flow.
+- Detailed documentation in `init-db.sh` explaining role hierarchy, schema permissions, and marking demo data as optional.
 
 ### Changed
 

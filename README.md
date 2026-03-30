@@ -134,7 +134,7 @@ All configuration is in `.env`:
 | `DOMAIN` | `localhost` | Hostname for Caddy TLS |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` | `postgres` / `postgres` | PostgreSQL superuser |
 | `POSTGREST_DB` | `postgrest` | Database for PostgREST |
-| `POSTGREST_USER` / `POSTGREST_PASSWORD` | `postgrest_user` / `postgrest_pass` | Unprivileged PostgREST database user |
+| `POSTGREST_USER` / `POSTGREST_PASSWORD` | `authenticator` / `postgrest_pass` | PostgREST connection role (see [Database Roles](#database-roles)) |
 | `DB_SCHEMA` | `testschema` | Schema exposed as API |
 | `DB_ANON_ROLE` | `anon` | Anonymous API access role |
 | `POSTGREST_SUBPATH` | `/postgrest` | URL path prefix |
@@ -143,3 +143,24 @@ All configuration is in `.env`:
 | `PGRST_DB_POOL_ACQUISITION_TIMEOUT` | `10` | Seconds to wait for a pool connection |
 
 Additional production settings are available as comments in `.env` (error verbosity, OpenAPI mode, pool lifecycle, logging, admin health endpoint).
+
+## Database Roles
+
+PostgREST uses a three-role security model where each role has a distinct purpose:
+
+| Role | Attributes | Purpose |
+|------|-----------|---------|
+| `postgres` | `SUPERUSER, LOGIN` | PostgreSQL superuser. Only used by init scripts to create the database, roles, and schema. Never used at runtime by PostgREST. |
+| `authenticator` | `LOGIN, NOINHERIT` | The role PostgREST connects to PostgreSQL as. It has no privileges of its own — `NOINHERIT` ensures it cannot accidentally use privileges from granted roles. On each API request, PostgREST issues `SET ROLE` to switch to the appropriate request role. |
+| `anon` | `NOLOGIN` | The anonymous request role. PostgREST switches to this role (`SET ROLE anon`) for unauthenticated API requests. All API permissions are controlled through grants on this role — it has read-only access to the exposed schema. |
+
+The flow for an unauthenticated request:
+
+1. PostgREST connects to PostgreSQL as `authenticator`.
+2. For each request, it runs `SET ROLE anon` to drop down to the anonymous role.
+3. The query executes with only the privileges granted to `anon`.
+4. After the request, the role is reset back to `authenticator`.
+
+Because `authenticator` is `NOINHERIT`, it has zero privileges on its own — it can only act through an explicit `SET ROLE`. This limits the damage if the connection credentials are ever compromised.
+
+To add authenticated users later, create additional roles (e.g. `web_user`) with `NOLOGIN`, grant them to `authenticator`, and configure PostgREST JWT authentication so it can `SET ROLE web_user` for requests bearing a valid token.
