@@ -5,8 +5,8 @@ services:
   postgrest-db:
     container_name: postgrest-db
     image: postgres:18-alpine
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"  # Uncomment to expose Postgres directly (local dev only)
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}

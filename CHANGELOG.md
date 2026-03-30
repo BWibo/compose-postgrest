@@ -17,7 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Moved PostgreSQL port exposure (`5432`) from base compose file to the local development override, preventing accidental exposure in production deployments.
 - Renamed PostgREST database role from `postgrest_user` to `authenticator` following PostgREST best practices.
 - Added `NOINHERIT NOCREATEDB NOCREATEROLE NOSUPERUSER` attributes to the authenticator role for tighter security.
 - Updated documentation in CLAUDE.md with new PostgREST settings table.
 - Switched PostgreSQL data storage to a named external Docker volume (`postgrest_pgdata`) for explicit data lifecycle management.
+
+[Unreleased]: https://github.com/BWibo/compose-postgrest/commits/HEAD
