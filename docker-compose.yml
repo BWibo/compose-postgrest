@@ -42,7 +42,7 @@ services:
   ################
   postgrest-db:
     container_name: postgrest-db
-    image: postgres:17-alpine
+    image: postgres:18
     ports:
       - "5432:5432"
     environment:
