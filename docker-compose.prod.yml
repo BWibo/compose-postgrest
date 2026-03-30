@@ -1,0 +1,12 @@
+services:
+  postgrest:
+    networks:
+      - proxy
+
+  swagger-ui:
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

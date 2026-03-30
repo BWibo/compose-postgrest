@@ -1,22 +1,24 @@
 #!/bin/bash
 
+# Step 1: Create PostgREST database and roles
 psql -U ${POSTGRES_USER} <<-END
-    CREATE DATABASE test;
-    CREATE USER ${DB_ANON_ROLE};
+    CREATE DATABASE ${POSTGREST_DB};
+    CREATE ROLE ${DB_ANON_ROLE} NOLOGIN;
+    CREATE ROLE ${POSTGREST_USER} LOGIN PASSWORD '${POSTGREST_PASSWORD}';
+    GRANT ${DB_ANON_ROLE} TO ${POSTGREST_USER};
 END
 
-psql -U ${POSTGRES_USER} -d test <<-END
+# Step 2: Create schema and grant permissions
+psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
     CREATE SCHEMA ${DB_SCHEMA};
-END
-
-psql -U ${POSTGRES_USER} -d test <<-END
     GRANT USAGE ON SCHEMA ${DB_SCHEMA} TO ${DB_ANON_ROLE};
     ALTER DEFAULT PRIVILEGES IN SCHEMA ${DB_SCHEMA} GRANT SELECT ON TABLES TO ${DB_ANON_ROLE};
     GRANT SELECT ON ALL SEQUENCES IN SCHEMA ${DB_SCHEMA} TO ${DB_ANON_ROLE};
     GRANT SELECT ON ALL TABLES IN SCHEMA ${DB_SCHEMA} TO ${DB_ANON_ROLE};
 END
 
-psql -U ${POSTGRES_USER} -d test <<-END
+# Step 3: Create tables, views, indexes, and seed data
+psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
 BEGIN;
     CREATE TABLE ${DB_SCHEMA}.test (
         id SERIAL PRIMARY KEY,
@@ -43,19 +45,20 @@ BEGIN;
 
 INSERT INTO ${DB_SCHEMA}.test (name, type, ts, val)
 SELECT
-    md5(random()::text) AS column1,         -- Random string (hash of random number)
-    chr(65 + (random() * 25)::int) ||      -- Random string starting with a random letter
+    md5(random()::text) AS column1,
+    chr(65 + (random() * 25)::int) ||
     chr(65 + (random() * 25)::int) ||
     chr(65 + (random() * 25)::int) AS column2,
-    (CURRENT_DATE - (random() * 365)::int)::DATE AS column3,  -- Random date within the past year
-    (random() * 100)::NUMERIC(10, 2) AS column4  -- Random number between 0 and 100 with 2 decimals
+    (CURRENT_DATE - (random() * 365)::int)::DATE AS column3,
+    (random() * 100)::NUMERIC(10, 2) AS column4
 FROM
     generate_series(1, 500);
 
 COMMIT;
 END
 
-psql -U ${POSTGRES_USER} -d test <<-END
+# Step 4: Add OpenAPI documentation comments
+psql -U ${POSTGRES_USER} -d ${POSTGREST_DB} <<-END
     COMMENT ON SCHEMA ${DB_SCHEMA} IS
         'This is a example title for an automatically created API documentation.';
 

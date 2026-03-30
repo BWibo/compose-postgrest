@@ -1,48 +1,10 @@
-volumes:
-  caddy_config:
-
-  caddy_data:
-    external: true
-
 services:
-  caddy:
-    image: lucaslorentz/caddy-docker-proxy:${CADDY_VERSION:?CADDY_VERSION not set}
-    # container_name: caddy
-    ports:
-      - 80:80
-      - 443:443
-      # - 2019:2019
-    networks:
-      - postgrest-backend
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:2019/metrics || exit 1",
-        ]
-      # interval: 1m30s
-      interval: 10s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - caddy_data:/data
-      - caddy_config:/config
-    restart: unless-stopped
-    labels:
-      caddy.email: "${ADMIN_EMAIL}"
-      # Avoids exceeding rate limit for Let's Encrypt certificates
-      # Disable to obtain production SSL certificate
-      # https://caddyserver.com/docs/automatic-https#testing
-      caddy.acme_ca: "https://acme-staging-v02.api.letsencrypt.org/directory"
-
   ################
   # postgrest-db #
   ################
   postgrest-db:
     container_name: postgrest-db
-    image: postgres:18
+    image: postgres:18-alpine
     ports:
       - "5432:5432"
     environment:
@@ -51,6 +13,9 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - DB_ANON_ROLE=${DB_ANON_ROLE}
       - DB_SCHEMA=${DB_SCHEMA}
+      - POSTGREST_DB=${POSTGREST_DB}
+      - POSTGREST_USER=${POSTGREST_USER}
+      - POSTGREST_PASSWORD=${POSTGREST_PASSWORD}
     volumes:
       # anything in initdb directory is created in the database
       # see "How to extend this image" section at https://hub.docker.com/r/_/postgres/
@@ -71,14 +36,12 @@ services:
   postgrest:
     container_name: postgrest
     image: postgrest/postgrest:latest
-    # ports:
-    #   - "3000:3000"
     # Available environment variables documented here:
     # https://postgrest.org/en/latest/configuration.html#environment-variables
     environment:
       # The standard connection URI format, documented at
       # https://www.postgresql.org/docs/current/static/libpq-connect.html#LIBPQ-CONNSTRING
-      - PGRST_DB_URI=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgrest-db:5432/test
+      - PGRST_DB_URI=postgres://${POSTGREST_USER}:${POSTGREST_PASSWORD}@postgrest-db:5432/${POSTGREST_DB}
       # The name of which database schema to expose to REST clients
       - PGRST_DB_SCHEMA=${DB_SCHEMA}
       # The database role to use when no client authentication is provided
@@ -89,29 +52,21 @@ services:
     networks:
       - postgrest-backend
     restart: always
-    labels:
-      caddy: "${DOMAIN:?DOMAIN not set}"
-      caddy.handle_path: "${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set}/*"
-      caddy.handle_path.reverse_proxy: "{{upstreams http 3000}}"
-      caddy.redir: "${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set} ${POSTGREST_SUBPATH:?POSTGREST_SUBPATH not set}/"
     depends_on:
       postgrest-db:
         condition: service_healthy
 
+  ##############
+  # swagger-ui #
+  ##############
   swagger-ui:
-    networks:
-      - postgrest-backend
     container_name: swagger-ui
     image: swaggerapi/swagger-ui:latest
     environment:
       - API_URL=https://${DOMAIN}${POSTGREST_SUBPATH}
+    networks:
+      - postgrest-backend
     restart: always
-    labels:
-      caddy: "${DOMAIN:?DOMAIN not set}"
-      caddy.handle_path: "/swagger/*"
-      caddy.handle_path.reverse_proxy: "{{upstreams http 8080}}"
-      caddy.redir: "/swagger /swagger/"
-
 
 networks:
   postgrest-backend:

@@ -1,0 +1,12 @@
+localhost {
+	handle_path /postgrest/* {
+		reverse_proxy postgrest:3000
+	}
+
+	handle_path /swagger/* {
+		reverse_proxy swagger-ui:8080
+	}
+
+	redir /postgrest /postgrest/ permanent
+	redir /swagger /swagger/ permanent
+}
