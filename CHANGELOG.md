@@ -15,5 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Renamed PostgREST database role from `postgrest_user` to `authenticator` following PostgREST best practices.
+- Added `NOINHERIT NOCREATEDB NOCREATEROLE NOSUPERUSER` attributes to the authenticator role for tighter security.
 - Updated documentation in CLAUDE.md with new PostgREST settings table.
 - Switched PostgreSQL data storage to a named external Docker volume (`postgrest_pgdata`) for explicit data lifecycle management.
