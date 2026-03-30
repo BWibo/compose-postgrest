@@ -39,6 +39,11 @@ All config lives in `.env`. Important variables:
 | `DB_SCHEMA` | `testschema` | Schema PostgREST exposes as API |
 | `DB_ANON_ROLE` | `anon` | NOLOGIN role for unauthenticated API requests |
 | `POSTGREST_SUBPATH` | `/postgrest` | URL path prefix for PostgREST |
+| `PGRST_DB_MAX_ROWS` | `1000` | Maximum rows returned per request |
+| `PGRST_DB_POOL` | `2` | Database connection pool size (increase for production) |
+| `PGRST_DB_POOL_ACQUISITION_TIMEOUT` | `10` | Seconds to wait for a free pool connection |
+
+Additional production settings are documented as comments in `.env` (error verbosity, OpenAPI mode, pool lifecycle, logging, admin server).
 
 ## Database Initialization
 

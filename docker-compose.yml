@@ -49,6 +49,9 @@ services:
       # Overrides the base URL used within the OpenAPI self-documentation hosted at the API root path
       - PGRST_OPENAPI_SERVER_PROXY_URI=https://${DOMAIN}${POSTGREST_SUBPATH}
       - PGRST_DB_AGGREGATES_ENABLED=true
+      - PGRST_DB_MAX_ROWS=${PGRST_DB_MAX_ROWS}
+      - PGRST_DB_POOL=${PGRST_DB_POOL}
+      - PGRST_DB_POOL_ACQUISITION_TIMEOUT=${PGRST_DB_POOL_ACQUISITION_TIMEOUT}
     networks:
       - postgrest-backend
     restart: always
