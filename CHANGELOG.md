@@ -23,4 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated documentation in CLAUDE.md with new PostgREST settings table.
 - Switched PostgreSQL data storage to a named external Docker volume (`postgrest_pgdata`) for explicit data lifecycle management.
 
+### Fixed
+
+- Moved `Caddyfile` to `caddy/Caddyfile` and mount the `caddy/` directory (`./caddy:/etc/caddy:ro`) instead of the single file, so `caddy reload` picks up a Caddyfile changed by `git pull`. A single-file bind mount stays pinned to the old inode. Running containers need one recreate: `docker compose up -d --force-recreate caddy`.
+
 [Unreleased]: https://github.com/BWibo/compose-postgrest/commits/HEAD
