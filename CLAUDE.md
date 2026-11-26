@@ -20,7 +20,7 @@ Note: `docker-compose up` automatically merges `docker-compose.yml` + `docker-co
 
 ## Architecture
 
-- **Caddy** (`caddy:2-alpine`, in `docker-compose.override.yml`) — reverse proxy configured via a static `Caddyfile`. Routes `/postgrest/*` → PostgREST, `/swagger/*` → Swagger UI. Auto-generates internal TLS cert for `localhost`.
+- **Caddy** (`caddy:2-alpine`, in `docker-compose.override.yml`) — reverse proxy configured via a static `caddy/Caddyfile`. Routes `/postgrest/*` → PostgREST, `/swagger/*` → Swagger UI. Auto-generates internal TLS cert for `localhost`.
 - **PostgreSQL 18** (`postgrest-db`) — primary database on port 5432. Init scripts in `initdb/` run on first container creation only (requires volume reset to re-run).
 - **PostgREST** — connects as `authenticator` (LOGIN, NOINHERIT) and switches to `anon` for unauthenticated requests. Exposes the schema defined by `DB_SCHEMA` (default: `testschema`) in the `postgrest` database as a REST API.
 - **Swagger UI** — serves OpenAPI docs sourced from PostgREST's auto-generated spec.
@@ -61,7 +61,7 @@ Changes to init scripts only take effect on a fresh volume (`docker-compose down
 
 - `docker-compose.yml` — core services: postgrest-db, postgrest, swagger-ui, network
 - `docker-compose.override.yml` — Caddy reverse proxy (automatically loaded by `docker-compose up`)
-- `Caddyfile` — static reverse proxy routing (mounted into Caddy container)
+- `caddy/Caddyfile` — static reverse proxy routing (the `caddy/` directory is mounted at `/etc/caddy`, so `caddy reload` sees pulled changes)
 
 ## PostgREST API Patterns
 

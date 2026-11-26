@@ -15,7 +15,7 @@ Contains a simple front-end demo application.
 - `docker-compose.yml` — core services: PostgreSQL, PostgREST, Swagger UI
 - `docker-compose.override.yml` — Caddy reverse proxy (automatically loaded by `docker compose up`)
 - `docker-compose.prod.yml` — production overlay: joins external `proxy` network for deployment behind a shared reverse proxy
-- `Caddyfile` — static reverse proxy routing configuration
+- `caddy/Caddyfile` — static reverse proxy routing configuration
 
 ## Usage
 
